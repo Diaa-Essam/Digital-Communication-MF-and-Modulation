@@ -11,8 +11,6 @@ tx_signal = repelem(bits, m);
 
 snr_db = 0:0.2:30;
 
-BER = zeros(size(snr_db));
-
 s1 = ones(1, m);
 s2 = zeros(1, m);
 g = s1 - s2;
@@ -22,6 +20,7 @@ threshold = sum(g .* s1) / 2;
 
 BER_MF   = zeros(size(snr_db));
 BER_corr = zeros(size(snr_db));
+BER_simple = zeros(size(snr_db));
 
 h_mf = fliplr(s1 - s2);                   % Matched filter impulse response
 
@@ -49,13 +48,28 @@ for k = 1:length(snr_db)
     corr_output = sum(corr_matrix, 1);
     
     detected_bits = corr_output > threshold; 
-    BER(k) = sum(xor(bits, detected_bits)) / N;
+    BER_corr(k) = sum(xor(bits, detected_bits)) / N;
 
 end
 
+for k = 1:length(snr_db)
+    rx_signal = awgn(tx_signal, snr_db(k), 'measured');
+    
+    sampled = rx_signal(m:m:end);
+    
+    detected_bits = sampled > 0.5;
+    
+    BER_simple(k) = sum(xor(bits, detected_bits)) / N;
+end
+
+
 figure;
-semilogy(snr_db, BER);
+semilogy(snr_db, BER_MF, 'b-');             % MF in blue
+hold on;
+semilogy(snr_db, BER_corr, 'r--');          % Correlator in red dashed
+semilogy(snr_db, BER_simple, 'k:');         % Simple detector in black dotted
 xlabel('SNR (dB)');
 ylabel('BER');
-title('Matched Filter BER');
+title('BER Comparison: MF vs Correlator vs Simple Detector');
+legend('Matched Filter', 'Correlator', 'Simple Detector');
 grid on;
