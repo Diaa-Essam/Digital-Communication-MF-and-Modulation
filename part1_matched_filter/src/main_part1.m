@@ -21,5 +21,13 @@ h_mf = fliplr(s1 - s2);
 for k = 1:length(snr_db)
     
     rx_signal = awgn(tx_signal, snr_db(k), 'measured');
+    
     mf_output = conv(rx_signal, h_mf);
+    
+    sampled_output = mf_output(m:m:end);
+    
+    threshold  = m / 2;
+    
+    detected_bits = sampled_output > threshold;
+
 end
