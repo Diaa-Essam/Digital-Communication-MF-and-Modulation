@@ -20,6 +20,26 @@ g_rep = repmat(g, 1, N);
 
 threshold = sum(g .* s1) / 2;
 
+BER_MF   = zeros(size(snr_db));
+BER_corr = zeros(size(snr_db));
+
+h_mf = fliplr(s1 - s2);                   % Matched filter impulse response
+
+% --- Matched Filter Loop ---
+for k = 1:length(snr_db)
+
+    rx_signal = awgn(tx_signal, snr_db(k), 'measured');  
+
+    mf_output = conv(rx_signal, h_mf);                   
+
+    sampled_output = mf_output(m:m:N*m);                 
+
+    detected_bits = sampled_output > threshold;           
+
+    BER_MF(k) = sum(xor(bits, detected_bits)) / N;      
+
+end
+
 for k = 1:length(snr_db)
     
     rx_signal = awgn(tx_signal, snr_db(k), 'measured');
