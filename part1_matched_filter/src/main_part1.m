@@ -28,6 +28,15 @@ for k = 1:length(snr_db)
     
     threshold  = m / 2;
     
+    
     detected_bits = sampled_output > threshold;
+    BER(k) = sum(xor(bits, detected_bits)) / N;
 
 end
+
+figure;
+semilogy(snr_db, BER);
+xlabel('SNR (dB)');
+ylabel('BER');
+title('Matched Filter BER');
+grid on;
