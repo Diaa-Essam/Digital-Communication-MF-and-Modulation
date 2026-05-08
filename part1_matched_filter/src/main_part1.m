@@ -9,7 +9,7 @@ bits = randi([0 1], 1, N);
 m = 20;
 tx_signal = repelem(bits, m);
 
-snr_db = 0:0.2:30;
+snr_db = 0:2:30;
 
 s1 = ones(1, m);
 s2 = zeros(1, m);
@@ -28,7 +28,9 @@ h_mf = fliplr(s1 - s2);                   % Matched filter impulse response
 for k = 1:length(snr_db)
 
     rx_signal = awgn(tx_signal, snr_db(k), 'measured');  
-
+    
+    
+    %% Matched Filter
     mf_output = conv(rx_signal, h_mf);                   
 
     sampled_output = mf_output(m:m:N*m);                 
@@ -36,12 +38,8 @@ for k = 1:length(snr_db)
     detected_bits = sampled_output > threshold;           
 
     BER_MF(k) = sum(xor(bits, detected_bits)) / N;      
-
-end
-
-for k = 1:length(snr_db)
     
-    rx_signal = awgn(tx_signal, snr_db(k), 'measured');
+    %% Correlator
     corr_product = rx_signal .* g_rep;
     
     corr_matrix = reshape(corr_product, m, N);
@@ -49,17 +47,14 @@ for k = 1:length(snr_db)
     
     detected_bits = corr_output > threshold; 
     BER_corr(k) = sum(xor(bits, detected_bits)) / N;
-
-end
-
-for k = 1:length(snr_db)
-    rx_signal = awgn(tx_signal, snr_db(k), 'measured');
     
+    %Simple Detector
     sampled = rx_signal(m:m:end);
     
     detected_bits = sampled > 0.5;
     
     BER_simple(k) = sum(xor(bits, detected_bits)) / N;
+
 end
 
 
